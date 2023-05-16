@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watchEffect } from "vue";
+import { ref, watch, watchEffect } from "vue";
 import axios from "axios";
 import TheCard from "@/components/users/TheCard.vue";
 import TheList from "@/components/users/TheList.vue";
@@ -24,15 +24,17 @@ function setCurrentMode(mode) {
   currentMode.value = mode;
 }
 
+const memo = ref(new Map());
 const users = ref(null);
 async function getUsers(results = 10, page = 1) {
+  const key = `${results}_${page}`;
+  if (memo.value.get(key)) return memo.value.get(key);
+
   const res = await axios.get(
     `https://randomuser.me/api/?inc=picture,name,id&seed=91885730dab261f5&page=${page}&results=${results}`
   );
 
-  console.log(res);
-
-  return res.data.results.map((user) => {
+  const result = res.data.results.map((user) => {
     const { picture, name, id } = user;
     return {
       id: id.value,
@@ -40,11 +42,20 @@ async function getUsers(results = 10, page = 1) {
       name: name.first + " " + name.last,
     };
   });
+
+  memo.value.set(key, result);
+  console.log(res);
+
+  return result;
 }
 
-watchEffect(async () => {
-  users.value = await getUsers(perPage.value);
-});
+watch(
+  perPage,
+  async (newPage) => {
+    users.value = await getUsers(newPage);
+  },
+  { immediate: true }
+);
 
 const isModalOpen = ref(false);
 function toggleModal(isOpen) {
