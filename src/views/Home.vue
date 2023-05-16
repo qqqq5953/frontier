@@ -1,10 +1,11 @@
 <script setup>
 import { ref, watchEffect } from "vue";
 import axios from "axios";
-import BaseCard from "@/components/global/BaseCard.vue";
-import BaseList from "@/components/global/BaseList.vue";
+import TheCard from "@/components/users/TheCard.vue";
+import TheList from "@/components/users/TheList.vue";
+import TheHeader from "@/components/users/TheHeader.vue";
+import BaseModal from "@/components/global/BaseModal.vue";
 import BaseContainer from "@/components/global/BaseContainer.vue";
-import BaseHeader from "@/components/global/BaseHeader.vue";
 
 const props = defineProps({
   perPage: Number,
@@ -44,12 +45,31 @@ async function getUsers(results = 10, page = 1) {
 watchEffect(async () => {
   users.value = await getUsers(perPage.value);
 });
+
+const isModalOpen = ref(false);
+function toggleModal(isOpen) {
+  isModalOpen.value = isOpen;
+}
+function showDetail(e) {
+  if (e.target.nodeName !== "UL") toggleModal(true);
+}
+
+const selectedUser = ref(null);
+function selectUser(user) {
+  selectedUser.value = user;
+}
 </script>
 
 <template>
+  <Teleport to="body">
+    <BaseModal v-show="isModalOpen" @toggleModal="toggleModal">
+      <img :src="selectedUser?.img" alt="" />
+      <p class="text-xs truncate">{{ selectedUser?.name }}</p>
+    </BaseModal>
+  </Teleport>
   <BaseContainer>
     <template #header>
-      <BaseHeader
+      <TheHeader
         :perPages="perPages"
         :modes="modes"
         :currentMode="currentMode"
@@ -58,16 +78,20 @@ watchEffect(async () => {
       />
     </template>
     <template #main>
-      <div class="flex flex-wrap -mx-4">
-        <template v-if="currentMode === 'card'">
-          <BaseCard v-for="user in users" :key="user.id" :user="user" />
-        </template>
-      </div>
-      <div class="flex flex-col gap-y-4 my-4">
-        <template v-if="currentMode === 'list'">
-          <BaseList v-for="user in users" :key="user.id" :user="user" />
-        </template>
-      </div>
+      <template v-if="currentMode === 'card'">
+        <ul class="flex flex-wrap -mx-4" @click="showDetail($event)">
+          <li class="w-1/5" v-for="user in users" :key="user.id">
+            <TheCard :user="user" @click="selectUser(user)" />
+          </li>
+        </ul>
+      </template>
+      <template v-if="currentMode === 'list'">
+        <ul class="flex flex-col gap-y-4 my-4" @click="showDetail($event)">
+          <li v-for="user in users" :key="user.id">
+            <TheList :user="user" @click="selectUser(user)" />
+          </li>
+        </ul>
+      </template>
     </template>
   </BaseContainer>
 </template>
