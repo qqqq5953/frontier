@@ -14,12 +14,14 @@ function toggleModal(isOpen) {
 }
 function showDetail(e) {
   const nodeName = e.target.nodeName;
+  const omitNodes_card = ["UL", "LI", "I"];
+  const omitNodes_list = ["UL", "I"];
   const modes = {
     card: () => {
-      if (nodeName !== "UL" && nodeName !== "LI") toggleModal(true);
+      if (omitNodes_card.indexOf(nodeName) === -1) toggleModal(true);
     },
     list: () => {
-      if (nodeName !== "UL") toggleModal(true);
+      if (omitNodes_list.indexOf(nodeName) === -1) toggleModal(true);
     },
   };
   const show = modes[currentMode.value];
@@ -31,10 +33,10 @@ const memo = ref(new Map());
 const users = ref(null);
 async function getUsers(results = 10, page = 1) {
   const key = `${results}_${page}`;
-  if (memo.value.get(key)) return memo.value.get(key);
+  if (memo.value.has(key)) return memo.value.get(key);
 
   const res = await axios.get(
-    `https://randomuser.me/api/?inc=picture,name,id&seed=91885730dab261f5&page=${page}&results=${results}`
+    `https://randomuser.me/api/?inc=picture,name,id&nat=us&seed=91885730dab261f5&page=${page}&results=${results}`
   );
 
   const users = res.data.results.map((user) => {
@@ -71,9 +73,10 @@ function setCurrentMode(mode) {
 const perPages = ref([10, 30, 50]);
 const perPage = ref(10);
 const currentPage = ref(1);
+getPageStatus();
 
 function getPageStatus() {
-  const pageStatus = localStorage.getItem("pageStatus");
+  const pageStatus = localStorage.getItem("all_pageStatus");
   if (pageStatus) {
     const { memoCurrentPage, memoPerPage, memoCurrentMode } =
       JSON.parse(pageStatus);
@@ -83,11 +86,9 @@ function getPageStatus() {
   }
 }
 
-getPageStatus();
-
 function storePageStatus({ currentPage, perPage, currentMode }) {
   localStorage.setItem(
-    "pageStatus",
+    "all_pageStatus",
     JSON.stringify({
       memoCurrentMode: currentMode,
       memoCurrentPage: currentPage,
@@ -117,6 +118,48 @@ onBeforeUnmount(() => {
     perPage: perPage.value,
   });
 });
+
+// favoorite
+const favoriteMap = ref(new Map());
+checkFavorite();
+
+function checkFavorite() {
+  const favoriteItems = JSON.parse(localStorage.getItem("favoriteItems"));
+  if (!favoriteItems) return;
+
+  Object.entries(favoriteItems).forEach(([key, value]) => {
+    favoriteMap.value.set(key, value);
+  });
+}
+
+function addFavorite(user) {
+  const { id, img, name } = user;
+  if (favoriteMap.value.has(id)) return;
+
+  const favoriteItems = localStorage.getItem("favoriteItems");
+  const savedItems = favoriteItems
+    ? JSON.stringify({
+        ...JSON.parse(favoriteItems),
+        [id]: { name, img },
+      })
+    : JSON.stringify({
+        [id]: { name, img },
+      });
+
+  localStorage.setItem("favoriteItems", savedItems);
+  favoriteMap.value.set(id, { name, img });
+}
+
+function removeFavorite(id) {
+  if (!favoriteMap.value.has(id)) return;
+  const favoriteItems = localStorage.getItem("favoriteItems");
+
+  if (!favoriteItems) return;
+  const { [id]: removedItem, ...remainingItems } = JSON.parse(favoriteItems);
+
+  localStorage.setItem("favoriteItems", JSON.stringify(remainingItems));
+  favoriteMap.value.delete(id);
+}
 </script>
 
 <template>
@@ -137,20 +180,41 @@ onBeforeUnmount(() => {
       />
     </template>
     <template #main>
-      <template v-if="currentMode === 'card'">
-        <ul class="flex flex-wrap -mx-4" @click="showDetail($event)">
-          <li class="w-1/5" v-for="user in users" :key="user.id">
-            <TheCard :user="user" @click="selectUser(user)" />
+      <main class="p-4">
+        <ul
+          class="flex flex-wrap"
+          :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'"
+          @click="showDetail($event)"
+        >
+          <li
+            class="relative"
+            :class="currentMode === 'card' ? 'w-1/5' : 'w-full'"
+            v-for="user in users"
+            :key="user.id"
+          >
+            <TheCard
+              :user="user"
+              @click="selectUser(user)"
+              v-if="currentMode === 'card'"
+            />
+            <TheList
+              :user="user"
+              @click="selectUser(user)"
+              v-else-if="currentMode === 'list'"
+            />
+            <i
+              class="fa-regular fa-heart absolute bottom-4 right-4 cursor-pointer"
+              v-if="!favoriteMap.has(user.id)"
+              @click="addFavorite(user)"
+            ></i>
+            <i
+              class="fa-solid fa-heart absolute bottom-4 right-4 cursor-pointer"
+              v-else
+              @click="removeFavorite(user.id)"
+            ></i>
           </li>
         </ul>
-      </template>
-      <template v-if="currentMode === 'list'">
-        <ul class="flex flex-col gap-y-4 my-4" @click="showDetail($event)">
-          <li v-for="user in users" :key="user.id">
-            <TheList :user="user" @click="selectUser(user)" />
-          </li>
-        </ul>
-      </template>
+      </main>
     </template>
   </BaseContainer>
 </template>
