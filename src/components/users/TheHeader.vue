@@ -29,7 +29,7 @@ function setCurrentMode(mode) {
         <select
           class="border border-slate-600 rounded"
           :value="perPage"
-          @input="$emit('update:perPage', $event.target.value)"
+          @input="$emit('update:perPage', parseInt($event.target.value))"
         >
           <option :value="num" v-for="num in perPages" :key="num">
             {{ num }}

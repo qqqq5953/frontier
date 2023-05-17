@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, watchEffect } from "vue";
+import { onBeforeUnmount, ref, watch, watchEffect } from "vue";
 import axios from "axios";
 import TheCard from "@/components/users/TheCard.vue";
 import TheList from "@/components/users/TheList.vue";
@@ -7,23 +7,26 @@ import TheHeader from "@/components/users/TheHeader.vue";
 import BaseModal from "@/components/global/BaseModal.vue";
 import BaseContainer from "@/components/global/BaseContainer.vue";
 
-const props = defineProps({
-  perPage: Number,
-  mode: String,
-});
-
-const perPages = ref([10, 30, 50]);
-const perPage = ref(10);
-const currentMode = ref("card");
-const modes = ref([
-  { name: "card", style: "fa-table-cells-large" },
-  { name: "list", style: "fa-list" },
-]);
-
-function setCurrentMode(mode) {
-  currentMode.value = mode;
+// modal
+const isModalOpen = ref(false);
+function toggleModal(isOpen) {
+  isModalOpen.value = isOpen;
+}
+function showDetail(e) {
+  const nodeName = e.target.nodeName;
+  const modes = {
+    card: () => {
+      if (nodeName !== "UL" && nodeName !== "LI") toggleModal(true);
+    },
+    list: () => {
+      if (nodeName !== "UL") toggleModal(true);
+    },
+  };
+  const show = modes[currentMode.value];
+  show();
 }
 
+// users
 const memo = ref(new Map());
 const users = ref(null);
 async function getUsers(results = 10, page = 1) {
@@ -34,7 +37,7 @@ async function getUsers(results = 10, page = 1) {
     `https://randomuser.me/api/?inc=picture,name,id&seed=91885730dab261f5&page=${page}&results=${results}`
   );
 
-  const result = res.data.results.map((user) => {
+  const users = res.data.results.map((user) => {
     const { picture, name, id } = user;
     return {
       id: id.value,
@@ -43,32 +46,77 @@ async function getUsers(results = 10, page = 1) {
     };
   });
 
-  memo.value.set(key, result);
+  memo.value.set(key, users);
   console.log(res);
 
-  return result;
-}
-
-watch(
-  perPage,
-  async (newPage) => {
-    users.value = await getUsers(newPage);
-  },
-  { immediate: true }
-);
-
-const isModalOpen = ref(false);
-function toggleModal(isOpen) {
-  isModalOpen.value = isOpen;
-}
-function showDetail(e) {
-  if (e.target.nodeName !== "UL") toggleModal(true);
+  return users;
 }
 
 const selectedUser = ref(null);
 function selectUser(user) {
   selectedUser.value = user;
 }
+
+// page and mode
+const currentMode = ref("card");
+const modes = ref([
+  { name: "card", style: "fa-table-cells-large" },
+  { name: "list", style: "fa-list" },
+]);
+
+function setCurrentMode(mode) {
+  currentMode.value = mode;
+}
+
+const perPages = ref([10, 30, 50]);
+const perPage = ref(10);
+const currentPage = ref(1);
+
+function getPageStatus() {
+  const pageStatus = localStorage.getItem("pageStatus");
+  if (pageStatus) {
+    const { memoCurrentPage, memoPerPage, memoCurrentMode } =
+      JSON.parse(pageStatus);
+    perPage.value = memoPerPage;
+    currentMode.value = memoCurrentMode;
+    currentPage.value = memoCurrentPage;
+  }
+}
+
+getPageStatus();
+
+function storePageStatus({ currentPage, perPage, currentMode }) {
+  localStorage.setItem(
+    "pageStatus",
+    JSON.stringify({
+      memoCurrentMode: currentMode,
+      memoCurrentPage: currentPage,
+      memoPerPage: perPage,
+    })
+  );
+}
+
+watch(
+  [perPage, currentPage, currentMode],
+  async ([newPerPage, newCurrentPage, newCurrentMode]) => {
+    users.value = await getUsers(newPerPage, newCurrentPage);
+
+    storePageStatus({
+      currentMode: newCurrentMode,
+      currentPage: newCurrentPage,
+      perPage: newPerPage,
+    });
+  },
+  { immediate: true }
+);
+
+onBeforeUnmount(() => {
+  storePageStatus({
+    currentMode: currentMode.value,
+    currentPage: currentPage.value,
+    perPage: perPage.value,
+  });
+});
 </script>
 
 <template>
