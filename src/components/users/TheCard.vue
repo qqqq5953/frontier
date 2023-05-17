@@ -8,7 +8,9 @@ const props = defineProps({
 
 <template>
   <BaseCard>
-    <img :src="user.img" alt="" />
-    <p class="text-xs truncate">{{ user.name }}</p>
+    <img :src="user.img" :alt="user.name" class="rounded" />
+    <p class="text-xs truncate w-4/5 pt-3">
+      {{ user.name }}
+    </p>
   </BaseCard>
 </template>

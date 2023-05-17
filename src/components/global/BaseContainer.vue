@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="p-4">
+  <div>
     <slot name="header"></slot>
     <slot name="main"></slot>
   </div>

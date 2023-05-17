@@ -7,7 +7,7 @@ const props = defineProps({
 
 <template>
   <BaseList>
-    <img :src="user.img" alt="" />
+    <img :src="user.img" :alt="user.name" class="rounded" />
     <p class="text-xs truncate">{{ user.name }}</p>
   </BaseList>
 </template>

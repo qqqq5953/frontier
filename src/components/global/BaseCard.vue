@@ -2,7 +2,9 @@
 </script>
 
 <template>
-  <div class="border border-slate-300 rounded p-4 m-4 cursor-pointer">
+  <div
+    class="flex flex-col border border-slate-300 rounded p-2 m-2 cursor-pointer"
+  >
     <slot></slot>
   </div>
 </template>
