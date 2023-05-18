@@ -1,11 +1,12 @@
 <script setup>
-import { onBeforeUnmount, ref, watch, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
 import axios from "axios";
 import TheCard from "@/components/users/TheCard.vue";
 import TheList from "@/components/users/TheList.vue";
 import TheHeader from "@/components/users/TheHeader.vue";
 import BaseModal from "@/components/global/BaseModal.vue";
 import BaseContainer from "@/components/global/BaseContainer.vue";
+import BasePagination from "@/components/global/BasePagination.vue";
 
 // modal
 const isModalOpen = ref(false);
@@ -30,23 +31,30 @@ function showDetail(e) {
 
 // users
 const memo = ref(new Map());
-const users = ref(null);
-async function getUsers(results = 10, page = 1) {
-  const key = `${results}_${page}`;
+const users = ref([]);
+const totalUsers = ref(150);
+async function getUsers(perPage = 10, currentPage = 1, isLastPage) {
+  const key = `${perPage}_${currentPage}`;
   if (memo.value.has(key)) return memo.value.get(key);
 
   const res = await axios.get(
-    `https://randomuser.me/api/?inc=picture,name,id&nat=us&seed=91885730dab261f5&page=${page}&results=${results}`
+    `https://randomuser.me/api/?inc=picture,name,id&nat=us&seed=91885730dab261f5&page=${currentPage}&results=${perPage}`
   );
 
-  const users = res.data.results.map((user) => {
-    const { picture, name, id } = user;
-    return {
-      id: id.value,
-      img: picture.large,
-      name: name.first + " " + name.last,
-    };
-  });
+  const lastPageItems = isLastPage ? totalUsers.value % perPage : 0;
+  const endItemIndex =
+    lastPageItems === 0 ? res.data.results.length : lastPageItems;
+
+  const users = res.data.results
+    .map((user) => {
+      const { picture, name, id } = user;
+      return {
+        id: id.value,
+        img: picture.large,
+        name: name.first + " " + name.last,
+      };
+    })
+    .slice(0, endItemIndex);
 
   memo.value.set(key, users);
   console.log(res);
@@ -59,7 +67,7 @@ function selectUser(user) {
   selectedUser.value = user;
 }
 
-// page and mode
+// mode
 const currentMode = ref("card");
 const modes = ref([
   { name: "card", style: "fa-table-cells-large" },
@@ -70,9 +78,47 @@ function setCurrentMode(mode) {
   currentMode.value = mode;
 }
 
+// page
 const perPages = ref([10, 30, 50]);
 const perPage = ref(10);
 const currentPage = ref(1);
+const maxBtn = ref(5);
+
+const totalPages = computed(() => {
+  const pages = [];
+  const lastPage = Math.ceil(totalUsers.value / perPage.value);
+  const isLessThanFive = lastPage <= maxBtn.value;
+  const isFirstFive =
+    currentPage.value >= 1 && currentPage.value <= maxBtn.value;
+  const isLastFive =
+    currentPage.value > lastPage - maxBtn.value &&
+    currentPage.value <= lastPage;
+
+  if (isLessThanFive) {
+    for (let num = 1; num <= lastPage; num++) {
+      pages.push(num);
+    }
+  } else if (isFirstFive) {
+    for (let num = 1; num <= maxBtn.value; num++) {
+      pages.push(num);
+    }
+    pages.push("...");
+    pages.push(lastPage);
+  } else if (isLastFive) {
+    for (let num = lastPage - maxBtn.value; num <= lastPage; num++) {
+      pages.push(num);
+    }
+  } else {
+    for (let num = currentPage.value - 2; num <= currentPage.value + 2; num++) {
+      pages.push(num);
+    }
+    pages.push("...");
+    pages.push(lastPage);
+  }
+
+  return pages;
+});
+
 getPageStatus();
 
 function getPageStatus() {
@@ -97,15 +143,26 @@ function storePageStatus({ currentPage, perPage, currentMode }) {
   );
 }
 
+function setPage(page) {
+  currentPage.value = page;
+}
+
 watch(
   [perPage, currentPage, currentMode],
   async ([newPerPage, newCurrentPage, newCurrentMode]) => {
-    users.value = await getUsers(newPerPage, newCurrentPage);
+    // 如果 currentPage 在最後一頁，perPage 由小切換到大時，currentPage 要調整到新的排版的最後一頁
+    const lastPage = totalPages.value[totalPages.value.length - 1];
+    const adjustedCurrentPage =
+      lastPage < newCurrentPage ? lastPage : newCurrentPage;
+    const isLastPage = adjustedCurrentPage === lastPage;
+
+    currentPage.value = adjustedCurrentPage;
+    users.value = await getUsers(newPerPage, currentPage.value, isLastPage);
 
     storePageStatus({
       currentMode: newCurrentMode,
-      currentPage: newCurrentPage,
       perPage: newPerPage,
+      currentPage: currentPage.value,
     });
   },
   { immediate: true }
@@ -180,7 +237,7 @@ function removeFavorite(id) {
       />
     </template>
     <template #main>
-      <main class="p-4">
+      <main class="flex flex-col p-4 border grow h-full pb-20">
         <ul
           class="flex flex-wrap"
           :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'"
@@ -215,6 +272,15 @@ function removeFavorite(id) {
           </li>
         </ul>
       </main>
+    </template>
+    <template #footer>
+      <BasePagination
+        class="fixed bottom-0"
+        :totalPages="totalPages"
+        :currentPage="currentPage"
+        :maxBtn="maxBtn"
+        @setPage="setPage"
+      />
     </template>
   </BaseContainer>
 </template>
