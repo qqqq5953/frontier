@@ -29,13 +29,21 @@ function showDetail(e) {
   show();
 }
 
-// users
+// memo
 const memo = ref(new Map());
+function getMemo(pageId) {
+  return memo.value.get(pageId);
+}
+function setMemo(pageId, users) {
+  memo.value.set(pageId, users);
+}
+
+// users
 const users = ref([]);
 const totalUsers = ref(150);
 async function getUsers(perPage = 10, currentPage = 1, isLastPage) {
-  const key = `${perPage}_${currentPage}`;
-  if (memo.value.has(key)) return memo.value.get(key);
+  const pageId = `${perPage}_${currentPage}`;
+  if (memo.value.has(pageId)) return getMemo(pageId);
 
   const res = await axios.get(
     `https://randomuser.me/api/?inc=picture,name,id&nat=us&seed=91885730dab261f5&page=${currentPage}&results=${perPage}`
@@ -56,9 +64,7 @@ async function getUsers(perPage = 10, currentPage = 1, isLastPage) {
     })
     .slice(0, endItemIndex);
 
-  memo.value.set(key, users);
-  console.log(res);
-
+  setMemo(pageId, users);
   return users;
 }
 
@@ -178,15 +184,23 @@ onBeforeUnmount(() => {
 
 // favoorite
 const favoriteMap = ref(new Map());
-checkFavorite();
+getFavItemsMap();
 
-function checkFavorite() {
+function getFavItemsMap() {
   const favoriteItems = JSON.parse(localStorage.getItem("favoriteItems"));
   if (!favoriteItems) return;
 
   Object.entries(favoriteItems).forEach(([key, value]) => {
     favoriteMap.value.set(key, value);
   });
+}
+
+function storeFavItems(favItems) {
+  try {
+    localStorage.setItem("favoriteItems", favItems);
+  } catch (error) {
+    console.log("favoriteItems localStorage is full", error);
+  }
 }
 
 function addFavorite(user) {
@@ -203,7 +217,7 @@ function addFavorite(user) {
         [id]: { name, img },
       });
 
-  localStorage.setItem("favoriteItems", savedItems);
+  storeFavItems(savedItems);
   favoriteMap.value.set(id, { name, img });
 }
 
@@ -214,7 +228,7 @@ function removeFavorite(id) {
   if (!favoriteItems) return;
   const { [id]: removedItem, ...remainingItems } = JSON.parse(favoriteItems);
 
-  localStorage.setItem("favoriteItems", JSON.stringify(remainingItems));
+  storeFavItems(JSON.stringify(remainingItems));
   favoriteMap.value.delete(id);
 }
 </script>
@@ -284,5 +298,3 @@ function removeFavorite(id) {
     </template>
   </BaseContainer>
 </template>
-
-
