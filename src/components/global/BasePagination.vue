@@ -42,10 +42,10 @@ watch(
 
 <template>
   <nav
-    class="flex flex-wrap justify-center gap-x-4 w-full p-4 bg-white/30 backdrop-blur-md"
+    class="flex flex-wrap justify-center items-center gap-x-4 w-full p-4 bg-white/30 backdrop-blur-md"
   >
     <button
-      class="bg-white border border-blue-400 text-blue-400 rounded shadow-md w-8 h-8 disabled:bg-blue-200 disabled:text-gray-100 disabled:border-transparent disabled:cursor-not-allowed hover:bg-blue-400 hover:text-white"
+      class="bg-white border border-blue-400 text-blue-400 rounded shadow-md w-10 h-8 disabled:bg-blue-200 disabled:text-gray-100 disabled:border-transparent disabled:cursor-not-allowed hover:bg-blue-400 hover:text-white"
       @click="toPrev()"
       :disabled="currentPage === 1"
     >
@@ -53,7 +53,7 @@ watch(
     </button>
 
     <button
-      class="rounded w-8 h-8 shadow-md hover:bg-blue-400 hover:text-white"
+      class="rounded w-10 h-8 shadow-md hover:bg-blue-400 hover:text-white"
       :class="
         currentPage === page
           ? 'bg-blue-400 text-white'
@@ -67,7 +67,7 @@ watch(
     </button>
 
     <button
-      class="bg-white border border-blue-400 text-blue-400 rounded shadow-md w-8 h-8 disabled:bg-blue-200 disabled:text-gray-100 disabled:border-transparent disabled:cursor-not-allowed hover:bg-blue-400 hover:text-white"
+      class="bg-white border border-blue-400 text-blue-400 rounded shadow-md w-10 h-8 disabled:bg-blue-200 disabled:text-gray-100 disabled:border-transparent disabled:cursor-not-allowed hover:bg-blue-400 hover:text-white"
       @click="toNext()"
       :disabled="currentPage === totalPages[totalPages.length - 1]"
     >
@@ -75,7 +75,7 @@ watch(
     </button>
 
     <select
-      class="absolute right-4 h-8 w-10 border border-slate-500 rounded"
+      class="absolute right-4 h-8 w-12 border border-slate-500 rounded"
       @change="jumpTo"
       v-model="jumpToPage"
     >

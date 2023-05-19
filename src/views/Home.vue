@@ -40,7 +40,7 @@ function setMemo(pageId, users) {
 
 // users
 const users = ref([]);
-const totalUsers = ref(150);
+const totalUsers = ref(3010);
 async function getUsers(perPage = 10, currentPage = 1, isLastPage) {
   const pageId = `${perPage}_${currentPage}`;
   if (memo.value.has(pageId)) return getMemo(pageId);
@@ -243,6 +243,7 @@ function removeFavorite(id) {
   <BaseContainer>
     <template #header>
       <TheHeader
+        class="fixed top-0 w-full z-10 bg-white"
         :perPages="perPages"
         :modes="modes"
         :currentMode="currentMode"
@@ -251,7 +252,7 @@ function removeFavorite(id) {
       />
     </template>
     <template #main>
-      <main class="flex flex-col p-4 border grow h-full pb-20">
+      <main class="flex flex-col p-4 border grow h-full py-20">
         <ul
           class="flex flex-wrap"
           :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'"
