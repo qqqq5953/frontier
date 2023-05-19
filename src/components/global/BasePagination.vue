@@ -26,17 +26,18 @@ function toNext() {
   emit("setPage", currentPage);
 }
 
+const jumpToPage = ref(props.currentPage);
+
+function jumpTo() {
+  emit("setPage", jumpToPage.value);
+}
+
 watch(
   () => props.currentPage,
   (newVal) => {
     jumpToPage.value = newVal;
   }
 );
-
-const jumpToPage = ref(1);
-function jumpTo() {
-  emit("setPage", jumpToPage.value);
-}
 </script>
 
 <template>
