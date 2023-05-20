@@ -48,7 +48,7 @@ nav.flex.flex-wrap.justify-center.items-center.gap-x-4.w-full.p-4.backdrop-blur-
       )
         | {{ page }}
     template(v-else="")
-      .text-blue-400.bg-white
+      .text-blue-400
         | {{ page }}
 
   button.bg-white.border.border-blue-400.text-blue-400.rounded.shadow-md.w-10.h-8(
