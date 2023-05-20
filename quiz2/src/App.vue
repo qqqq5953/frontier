@@ -51,44 +51,33 @@ const tree = computed(() => {
 });
 </script>
 
-<template>
-  <div class="flex justify-center min-h-screen">
-    <section class="space-y-2 w-1/2 bg-gray-300/70 p-4">
-      <div class="text-right">
-        <button
-          class="bg-slate-500 hover:bg-slate-400 text-white rounded px-2 py-1"
-          @click="addNode"
-        >
-          + Add New Pair
-        </button>
-      </div>
-      <div v-for="(node, index) in nodes" :key="index">
-        <div class="flex flex-wrap gap-2 font-bold">
-          <input
-            class="rounded px-2 py-1 flex-1"
-            v-model="node.name"
-            placeholder="Key"
-            @input="updateTree"
-          />
-          <input
-            class="rounded px-2 py-1 flex-1"
-            v-model="node.value"
-            placeholder="Value"
-            @input="updateTree"
-          />
-          <button
-            class="bg-slate-400/40 hover:bg-slate-400/30 text-slate-500 rounded px-2 py-1 w-7"
-            @click="deleteNode(index)"
-          >
-            -
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section class="w-1/2 bg-gray-200 p-4">
-      <TreeItem :node="tree" />
-    </section>
-  </div>
+<template lang="pug">
+.flex.justify-center.min-h-screen
+  section.space-y-2.p-4(class="w-1/2 bg-gray-300/70")
+    .text-right
+      button.bg-slate-500.text-white.rounded.px-2.py-1(
+        class="hover:bg-slate-400",
+        @click="addNode"
+      )
+        | + Add New Pair
+    div(v-for="(node, index) in nodes", :key="index")
+      .flex.flex-wrap.gap-2.font-bold
+        input.rounded.px-2.py-1.flex-1(
+          v-model="node.name",
+          placeholder="Key",
+          @input="updateTree"
+        )
+        input.rounded.px-2.py-1.flex-1(
+          v-model="node.value",
+          placeholder="Value",
+          @input="updateTree"
+        )
+        button.text-slate-500.rounded.px-2.py-1.w-7(
+          class="bg-slate-400/40 hover:bg-slate-400/30",
+          @click="deleteNode(index)"
+        )
+          | -
+  section.bg-gray-200.p-4(class="w-1/2")
+    tree-item(:node="tree")
 </template>
 
