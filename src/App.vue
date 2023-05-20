@@ -1,7 +1,4 @@
-<script setup>
-</script>
-
-<template>
-  <router-view></router-view>
+<template lang="pug">
+router-view
 </template>
 

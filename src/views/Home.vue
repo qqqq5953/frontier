@@ -15,6 +15,8 @@ function toggleModal(isOpen) {
 }
 function showDetail(e) {
   const nodeName = e.target.nodeName;
+  console.log("nodeName", nodeName);
+
   const omitNodes_card = ["UL", "LI", "I"];
   const omitNodes_list = ["UL", "I"];
   const modes = {
@@ -233,69 +235,55 @@ function removeFavorite(id) {
 }
 </script>
 
-<template>
-  <Teleport to="body">
-    <BaseModal v-show="isModalOpen" @toggleModal="toggleModal">
-      <img :src="selectedUser?.img" alt="" />
-      <p class="text-xs truncate">{{ selectedUser?.name }}</p>
-    </BaseModal>
-  </Teleport>
-  <BaseContainer>
-    <template #header>
-      <TheHeader
-        class="fixed top-0 w-full z-10 bg-white"
-        :perPages="perPages"
-        :modes="modes"
-        :currentMode="currentMode"
-        v-model:perPage="perPage"
-        @setCurrentMode="setCurrentMode"
-      />
-    </template>
-    <template #main>
-      <main class="flex flex-col p-4 border grow h-full py-20">
-        <ul
-          class="flex flex-wrap"
-          :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'"
-          @click="showDetail($event)"
-        >
-          <li
-            class="relative"
-            :class="currentMode === 'card' ? 'w-1/5' : 'w-full'"
-            v-for="user in users"
-            :key="user.id"
-          >
-            <TheCard
-              :user="user"
-              @click="selectUser(user)"
-              v-if="currentMode === 'card'"
-            />
-            <TheList
-              :user="user"
-              @click="selectUser(user)"
-              v-else-if="currentMode === 'list'"
-            />
-            <i
-              class="fa-regular fa-heart absolute bottom-4 right-4 cursor-pointer"
-              v-if="!favoriteMap.has(user.id)"
-              @click="addFavorite(user)"
-            ></i>
-            <i
-              class="fa-solid fa-heart absolute bottom-4 right-4 cursor-pointer"
-              v-else
-              @click="removeFavorite(user.id)"
-            ></i>
-          </li>
-        </ul>
-      </main>
-    </template>
-    <template #footer>
-      <BasePagination
-        class="fixed bottom-0"
-        :totalPages="totalPages"
-        :currentPage="currentPage"
-        :maxBtn="maxBtn"
-        @setPage="setPage"
-      />
-    </template>
-  </BaseContainer>
+<template lang="pug">
+teleport(to="body")
+  base-modal(v-show="isModalOpen", @toggleModal="toggleModal")
+    img(:src="selectedUser?.img", alt="")
+    p.text-xs.truncate {{ selectedUser?.name }}
+
+base-container
+  template(#header="")
+    the-header.fixed.top-0.w-full.z-10.bg-white(
+      :perPages="perPages",
+      :modes="modes",
+      :currentMode="currentMode",
+      v-model:perPage="perPage",
+      @setCurrentMode="setCurrentMode"
+    )
+  template(#main="")
+    main.flex.flex-col.p-4.border.grow.h-full.py-20
+      ul.flex.flex-wrap(
+        :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'",
+        @click="showDetail($event)"
+      )
+        li.relative(
+          :class="currentMode === 'card' ? 'w-1/5' : 'w-full'",
+          v-for="user in users",
+          :key="user.id"
+        )
+          the-card(
+            :user="user",
+            @click="selectUser(user)",
+            v-if="currentMode === 'card'"
+          )
+          the-list(
+            :user="user",
+            @click="selectUser(user)",
+            v-else-if="currentMode === 'list'"
+          )
+          i.fa-regular.fa-heart.absolute.bottom-4.right-4.cursor-pointer(
+            v-if="!favoriteMap.has(user.id)",
+            @click="addFavorite(user)"
+          )
+          i.fa-solid.fa-heart.absolute.bottom-4.right-4.cursor-pointer(
+            v-else="",
+            @click="removeFavorite(user.id)"
+          )
+  template(#footer="")
+    base-pagination.fixed.bottom-0(
+      :totalPages="totalPages",
+      :currentPage="currentPage",
+      :maxBtn="maxBtn",
+      @setPage="setPage"
+    )
 </template>

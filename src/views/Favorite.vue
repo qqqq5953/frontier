@@ -15,6 +15,7 @@ function toggleModal(isOpen) {
 }
 function showDetail(e) {
   const nodeName = e.target.nodeName;
+  console.log("nodeName", nodeName);
   const omitNodes_card = ["UL", "LI", "I"];
   const omitNodes_list = ["UL", "I"];
   const modes = {
@@ -54,7 +55,8 @@ function getUsersFromStorage(startIndex, endIndex) {
         name: info.name,
       };
     })
-    .slice(startIndex, endIndex);
+    .slice(startIndex, endIndex)
+    .reverse();
 }
 
 async function getUsers(perPage = 10, currentPage = 1, isLastPage) {
@@ -231,64 +233,50 @@ async function removeFavItems(id) {
 }
 </script>
 
-<template>
-  <Teleport to="body">
-    <BaseModal v-show="isModalOpen" @toggleModal="toggleModal">
-      <img :src="selectedUser?.img" alt="" />
-      <p class="text-xs truncate">{{ selectedUser?.name }}</p>
-    </BaseModal>
-  </Teleport>
-  <BaseContainer>
-    <template #header>
-      <TheHeader
-        :perPages="perPages"
-        :modes="modes"
-        :currentMode="currentMode"
-        v-model:perPage="perPage"
-        @setCurrentMode="setCurrentMode"
-      />
-    </template>
-    <template #main>
-      <main class="flex flex-col p-4 border grow h-full pb-20">
-        <ul
-          class="flex flex-wrap"
-          :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'"
-          @click="showDetail($event)"
-        >
-          <li
-            class="relative"
-            :class="currentMode === 'card' ? 'w-1/5' : 'w-full'"
-            v-for="user in users"
-            :key="user.id"
-          >
-            <temmplate v-if="favItemsMap.has(user.id)">
-              <TheCard
-                :user="user"
-                @click="selectUser(user)"
-                v-if="currentMode === 'card'"
-              />
-              <TheList
-                :user="user"
-                @click="selectUser(user)"
-                v-else-if="currentMode === 'list'"
-              />
-              <i
-                class="fa-solid fa-heart absolute bottom-4 right-4 cursor-pointer"
-                @click="removeFavItems(user.id)"
-              ></i>
-            </temmplate>
-          </li>
-        </ul>
-      </main>
-    </template>
-    <template #footer>
-      <BasePagination
-        class="fixed bottom-0"
-        :totalPages="totalPages"
-        :currentPage="currentPage"
-        :maxBtn="maxBtn"
-        @setPage="setPage"
-      />
-    </template>
-  </BaseContainer>
+<template lang="pug">
+teleport(to="body")
+  base-modal(v-show="isModalOpen", @toggleModal="toggleModal")
+    img(:src="selectedUser?.img", alt="")
+    p.text-xs.truncate {{ selectedUser?.name }}
+base-container
+  template(#header="")
+    the-header(
+      :perPages="perPages",
+      :modes="modes",
+      :currentMode="currentMode",
+      v-model:perPage="perPage",
+      @setCurrentMode="setCurrentMode"
+    )
+  template(#main="")
+    main.flex.flex-col.p-4.border.grow.h-full.pb-20
+      ul.flex.flex-wrap(
+        :class="currentMode === 'card' ? '-mx-4' : 'flex-col gap-y-4 my-3'",
+        @click="showDetail($event)"
+      )
+        li.relative(
+          :class="currentMode === 'card' ? 'w-1/5' : 'w-full'",
+          v-for="user in users",
+          :key="user.id"
+        )
+          template(v-if="favItemsMap.has(user.id)")
+            the-card(
+              :user="user",
+              @click="selectUser(user)",
+              v-if="currentMode === 'card'"
+            )
+            the-list(
+              :user="user",
+              @click="selectUser(user)",
+              v-else-if="currentMode === 'list'"
+            )
+            i.fa-solid.fa-heart.absolute.bottom-4.right-4.cursor-pointer(
+              @click="removeFavItems(user.id)"
+            )
+  template(#footer="")
+    base-pagination.fixed.bottom-0(
+      :totalPages="totalPages",
+      :currentPage="currentPage",
+      :maxBtn="maxBtn",
+      @setPage="setPage"
+    )
 </template>

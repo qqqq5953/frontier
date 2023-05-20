@@ -5,9 +5,13 @@ const props = defineProps({
 });
 </script>
 
-<template>
-  <BaseList>
-    <img :src="user.img" :alt="user.name" class="rounded" />
-    <p class="text-xs truncate">{{ user.name }}</p>
-  </BaseList>
+<template lang="pug">
+base-list
+  .relative.grid.place-items-center.rounded.text-slate-200(
+    class="w-1/4",
+    style="aspect-ratio: 1/1"
+  )
+    i.fa-solid.fa-user.fa-2xl
+    img.absolute.w-full.rounded(:src="user.img", :alt="user.name")
+  p.text-xs.truncate {{ user.name }}
 </template>
