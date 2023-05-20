@@ -1,7 +1,19 @@
-# Vue 3 + Vite
+# 如何執行
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+- cd quiz2
+- npm install
+- npm run dev
 
-## Recommended IDE Setup
+# 問題
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+## 節點資料轉換
+
+透過 JavaScript 的 pass by reference 特性，將節點轉成樹狀結構
+
+## 元件遞迴
+
+一開始先將資料透過 v-for 渲染到畫面上，但後來發現可以用遞迴做，於是建立 TreeItem.vue，裡面包含迴圈及判斷迴圈的每一個值是否是物件，如果是物件則將值再帶入一次 TreeItem.vue
+
+## 每個節點都要可以獨立開關
+
+一開始想透過單純的 isOpen 變數判斷節點開關，但這樣會導致同一層節點同時開關，後來透過 `<details>` 及 `<summary>` 加上 css 完成。

@@ -1,7 +1,47 @@
-# Vue 3 + Vite
+# 如何執行
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+- cd quiz1
+- npm install
+- npm run dev
 
-## Recommended IDE Setup
+# 問題
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+## 視窗資料呈現筆數切換
+
+- 情境：假設總筆數為 100，原本在最後一頁(第 10 頁)，切換 "一頁呈現幾筆"，從少切換到多(從 10 切換到 50)，當前頁應該變成第 2 頁
+- 實際：無法正確顯示當前頁面(還是停留在第 10 頁)
+- 解決：
+
+## 元素監聽
+
+- 預期：點擊圖片元素時跳出 modal 顯示資訊
+- 實際：每個圖片綁定 click 事件，這樣要綁定 3010 筆，有效能問題
+- 解決：用 event delegation，將 click 事件綁在最外層元素，再透過 e.target.nodeName 判斷哪個元素被點擊後要開啟 modal
+
+## 緩存
+
+- 預期：頁面載入順暢
+- 實際：當 "一頁呈現幾筆" 的數量變多，載入時間會變慢
+- 解決：設計緩存機制 (memo 變數)，將已取得的該頁面資料存在 Map，key 為 `${perPage}_${currentPage}`
+
+## 頁面刷新保存頁面資訊
+
+- 預期：頁面刷新後保存前一次 "一頁呈現幾筆"、"當前頁數"、"呈現樣式(card or list)"
+- 實際：都初始到 "一頁呈現 10 筆"、"第一頁"、"card 樣式"
+- 解決：透過 localStorage 保存上述資訊，只要三者其一有變動就重新寫入最新資料，並在頁面載入時透過這些參數取得 user 資料
+
+## 分頁頁數太多
+
+- 預期：分頁元件只需占一整列且可以輕易到達目標頁
+- 實際：過多分頁按鈕使得畫面不美觀且影響使用者體驗
+- 解決：一次只顯示 5 個分頁按鈕，超過第 5 頁時，可根據所在頁面動態顯示該頁前 2 頁及後 2 頁按鈕。針對畫面沒顯示的分頁按鈕，可透過 `<select>` 直接到達該頁。但由於頁數過多造成 select 下拉選單過長，於是自己設計 dropdown
+
+## 元件共用
+
+- 預期：元件的複用及擴充取得平衡
+- 實際：
+  - 觀察 all 及 favorite 頁面一樣，原本想要兩個畫面使用共用一個元件(例如 Users.vue，包含 header, main, pagination)，但考量到現實中，如果之後其中一個頁面要新增或修改需求，會影響到另一個頁面。
+  - card 及 list 元件有加入我的最愛按鈕，但也是考量到可能未來其他地方會用到該元件，但不需要我的最愛功能。
+- 解決：
+  - BaseContainer 元件用 slot 可以達成彈性擴充，讓 all 及 favorite 各自插入需要的元件
+  - card 及 list 只定義最基本樣式。
